@@ -10,11 +10,12 @@ Näyttötyö on selainkäyttöinen tiimiprojektin jäsenhakupalvelu.
 ### Käyttäjän toiminnot:  
 - Rekisteröityminen  
 - Kirjautuminen  
-- Projektin ilmoittaminen  
-- Viestien lähettäminen ja katsominen  
+- Toimeksiannon ilmoittaminen  
+- Toimeksiannon tykkääminen
+- Toimeksiannon kommentointi 
 
 ### Ylläpitäjän toiminnot:  
-- Ilmoitusten poistaminen  
+- Toimeksiantojen poistaminen
 - Käyttäjätilejä hallinnoiminen ja tarvittaessa poistaminen  
 
 **Deadline:** 22.08.2025  
