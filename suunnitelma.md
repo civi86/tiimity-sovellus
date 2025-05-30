@@ -17,7 +17,7 @@ Näyttötyö on selainkäyttöinen tiimiprojektin hakupalvelu.
 - Ilmoitusten poistaminen  
 - Käyttäjätilejä hallinnoiminen ja tarvittaessa poistaminen  
 
-**Deadline:** 30.07.2025  
+**Deadline:** 22.08.2025  
 
 ## Työnjako  
 - Benjamin:
