@@ -21,5 +21,5 @@ Näyttötyö on selainkäyttöinen tiimiprojektin jäsenhakupalvelu.
 **Deadline:** 22.08.2025  
 
 ## Työnjako  
-- Benjamin:
-- Christian:
+- Benjamin: Backend
+- Christian: Frontend
