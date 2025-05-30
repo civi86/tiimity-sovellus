@@ -5,7 +5,7 @@
 - Christian Karjola  
 
 ## Yleiskuvaus  
-Näyttötyö on selainkäyttöinen tiimiprojektin hakupalvelu.  
+Näyttötyö on selainkäyttöinen tiimiprojektin jäsenhakupalvelu.  
 
 ### Käyttäjän toiminnot:  
 - Rekisteröityminen  
