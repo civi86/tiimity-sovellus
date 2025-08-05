@@ -1,37 +1,66 @@
 import { useState } from "react"
 import Button from "./components/Button"
 import Header from "./components/Header"
-import ProjectList from "./components/ProjectList"
+import {useProjects} from "./context/ProjectsContext"
+
 
 function App() {
+  const { projects, activeProjectId, setActiveProject } = useProjects();
 
-  const [projects, setProjects] = useState([
-    {
-      title: "Odottaa ryhmää",
-      projects: [],
-      status: "",
-      id: 69,
-      
-    },
-  ]);
+  const setSelectedProject = (projectId) => {
+    setActiveProject(projectId);
+  };
+
+  const addCategory = () => {
+    console.log("Lisää kategoria");
+  };
+
+  const activeProject = projects.find(p => p.id === activeProjectId);
 
   return (
     <>
-       <Header>
-    <Button className="active">OHJ2: Python-tiimityö</Button>
-    <Button>OHJ4: CanvasAPI</Button>
-    <Button>OHJ-näyttö</Button>
-    <Button>OKT-näyttö</Button>
-    <Button onclick="addCategory()">+ Lisää kategoria</Button>
-  </Header>
+      <Header>
+        {/* Näytä projektipainikkeet */}
+        {projects.map((project) => (
+          <Button
+            key={project.id}
+            className={project.id === activeProjectId ? "active" : ""}
+            onClick={() => setSelectedProject(project.id)}
+          >
+            {project.name}
+          </Button>
+        ))}
+        <Button onClick={addCategory}>+ Lisää kategoria</Button>
+      </Header>
 
-    <section className="project-list-container">
-    {projects.map(p => 
-      <ProjectList key={p.id} status={p.status} title={p.title} projects={projects}/>
-    )}
-    </section>
+      {/* Näytä aktiivisen projektin tehtävät */}
+      {activeProject && (
+        <div className="project-details">
+          <h2>{activeProject.name}</h2>
+
+          {activeProject.categories.map((category) => (
+            <div key={category.id} className="category">
+              <h3>{category.name}</h3>
+
+              {category.tasks.length > 0 ? (
+                <ul>
+                  {category.tasks.map((task) => (
+                    <li key={task.id}>
+                      <input type="checkbox" checked={task.completed} readOnly />
+                      {task.title}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Ei tehtäviä.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </>
-  )
+  );
 }
+
 
 export default App
