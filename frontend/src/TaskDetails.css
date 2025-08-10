@@ -1,0 +1,37 @@
+.task-details-container {
+  max-width: 600px;
+  margin: 4rem auto;
+  padding: 1rem 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.task-details-container h2 {
+  margin-bottom: 1rem;
+  color: #000000;
+}
+
+.task-details-container p {
+  margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+.task-details-container strong {
+  font-weight: 600;
+}
+
+.task-details-container a.back-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: #8c00ff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.task-details-container a.back-link:hover {
+  color: #510094;
+}

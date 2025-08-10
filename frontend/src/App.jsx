@@ -1,27 +1,35 @@
-import { useState } from "react"
-import Button from "./components/Button"
-import Header from "./components/Header"
-import {useProjects} from "./context/ProjectsContext"
+import { useProjects } from "./context/ProjectsContext";
+import Button from "./components/Button";
+import Header from "./components/Header";
+import { Link } from "react-router-dom";
 
 
 function App() {
-  const { projects, activeProjectId, setActiveProject } = useProjects();
+  const { projects, activeProjectId, setActiveProject, addTaskToCategory } = useProjects();
 
-  const setSelectedProject = (projectId) => {
-    setActiveProject(projectId);
-  };
+  const setSelectedProject = (projectId) => setActiveProject(projectId);
 
-  const addCategory = () => {
-    console.log("Lisää kategoria");
-  };
+  const addTask = () => {
+  const title = prompt("Syötä projektin nimi:");
+  if (!title) return;
+
+  const description = prompt("Syötä projektin kuvaus:") || "";
+  const creator = prompt("Syötä nimesi:") || "Unknown";
+
+  const activeProject = projects.find(p => p.id === activeProjectId);
+  if (activeProject?.categories.length > 0) {
+    const categoryId = activeProject.categories[0].id;
+    addTaskToCategory(activeProjectId, categoryId, title, description, creator);
+  }
+};
 
   const activeProject = projects.find(p => p.id === activeProjectId);
 
   return (
     <>
       <Header>
-        {/* Näytä projektipainikkeet */}
-        {projects.map((project) => (
+        <img src="assets/it-velhot.png" alt="Logo" style={{ height: "40px", marginRight: "9rem", marginLeft: "2rem" }} />
+        {projects.map(project => (
           <Button
             key={project.id}
             className={project.id === activeProjectId ? "active" : ""}
@@ -30,32 +38,32 @@ function App() {
             {project.name}
           </Button>
         ))}
-        <Button onClick={addCategory}>+ Lisää kategoria</Button>
       </Header>
 
-      {/* Näytä aktiivisen projektin tehtävät */}
       {activeProject && (
         <div className="project-details">
           <h2>{activeProject.name}</h2>
 
-          {activeProject.categories.map((category) => (
+          <Button onClick={addTask}>+ Aloita Projekti</Button>
+
+          {activeProject.categories.map(category => (
             <div key={category.id} className="category">
               <h3>{category.name}</h3>
-
               {category.tasks.length > 0 ? (
                 <ul>
-                  {category.tasks.map((task) => (
+                  {category.tasks.map(task => (
                     <li key={task.id}>
-                      <input type="checkbox" checked={task.completed} readOnly />
-                      {task.title}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>Ei tehtäviä.</p>
-              )}
-            </div>
-          ))}
+                      <Link to={`/task/${task.id}`}>
+                        <strong>{task.title}</strong>
+                      </Link>: {task.description} <em>(projektin luoja: {task.creator})</em>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>Ei projekteja.</p>
+    )}
+  </div>
+))}
         </div>
       )}
     </>
@@ -63,4 +71,4 @@ function App() {
 }
 
 
-export default App
+export default App;
