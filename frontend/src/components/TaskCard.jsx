@@ -1,40 +1,70 @@
-// TaskCard.jsx
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function TaskCard({ title, description, assignees, deadline }) {
+export default function TaskCard({ task }) {
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(task.likes || 0);
+
+  const fakeCommentsCount = 12; // static visual comment count
+
+  const toggleLike = (e) => {
+    e.preventDefault(); // prevent navigating when clicking the button inside Link
+    if (liked) {
+      setLikesCount(likesCount - 1);
+    } else {
+      setLikesCount(likesCount + 1);
+    }
+    setLiked(!liked);
+  };
+
   return (
-    <div className="bg-gray-900 text-white p-4 rounded-lg shadow-lg mb-4">
-      <div className="flex items-start justify-between">
+    <Link
+        to={`/task/${task.id}`}
+  className="block group transform transition duration-300 hover:scale-[1.05] hover:shadow-xl no-underline"
+  aria-label={`View details for task: ${task.title}`}
+    >
+      <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between h-full border border-gray-200 hover:border-green-500">
         <div>
-          <h3 className="text-lg font-semibold">{title}</h3>
-          {description.map((line, idx) => (
-            <p key={idx} className="text-sm">{line}</p>
-          ))}
+          <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">
+            {task.title}
+          </h3>
+          <p className="text-sm text-gray-500 italic mb-3">
+            Luonut {task.creator}
+          </p>
+          <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
+            {task.description}
+          </p>
         </div>
-        <input type="checkbox" className="form-checkbox w-5 h-5 mt-1" />
-      </div>
 
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
-        <div className="flex space-x-3">
-          <span title="Kommentit">💬</span>
-          <span title="Liitteet">📎</span>
-        </div>
-        <div className="flex space-x-2 items-center">
-          {deadline && (
-            <span className="bg-blue-800 text-white text-xs px-2 py-1 rounded-md">
-              {deadline}
+        <div className="flex items-center justify-between mt-6">
+          {/* Likes on the left */}
+          <button
+            type="button"
+            onClick={toggleLike}
+            aria-pressed={liked}
+            aria-label={liked ? "Unlike task" : "Like task"}
+            className={`flex items-center space-x-1 focus:outline-none transition-colors duration-300 ${
+              liked ? "text-pink-600" : "text-gray-400 hover:text-green-600"
+            }`}
+          >
+            <span className="text-lg" aria-hidden="true">
+              {liked ? "❤️" : "🤍"}
             </span>
-          )}
-          {assignees.map((name, idx) => (
-            <span
-              key={idx}
-              className="bg-gray-700 text-white text-xs w-7 h-7 flex items-center justify-center rounded-full"
-            >
-              {name}
-            </span>
-          ))}
+            <span className="text-sm select-none">{likesCount}</span>
+          </button>
+
+          {/* Comments on the right */}
+          <div
+            role="img"
+            aria-label="Comments"
+            title="Kommentit"
+            className="flex items-center space-x-1 text-gray-400 text-sm cursor-default select-none"
+          >
+            <span className="text-lg">💬</span>
+            <span>{fakeCommentsCount}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
