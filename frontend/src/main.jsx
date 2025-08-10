@@ -17,7 +17,7 @@ function Root() {
   return user ? (
     <ProjectsProvider>
       <Routes>
-        <Route path="/" element={<App />} />
+        <Route path="/dashboard" element={<App />} />
         <Route path="/task/:taskId" element={<TaskDetails />} />
       </Routes>
     </ProjectsProvider>

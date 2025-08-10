@@ -1,35 +1,62 @@
 import { useProjects } from "./context/ProjectsContext";
 import Button from "./components/Button";
 import Header from "./components/Header";
-import { Link } from "react-router-dom";
 import TaskCard from "./components/TaskCard";
-
 
 function App() {
   const { projects, activeProjectId, setActiveProject, addTaskToCategory } = useProjects();
+
   const setSelectedProject = (projectId) => setActiveProject(projectId);
 
-  const addTask = () => {
+  const addTask = async () => {
     const title = prompt("Syötä tehtävän nimi:");
     if (!title) return;
 
     const description = prompt("Syötä tehtävän kuvaus:") || "";
     const creator = prompt("Syötä nimesi:") || "Unknown";
 
-    const activeProject = projects.find(p => p.id === activeProjectId);
-    if (activeProject?.categories.length > 0) {
-      addTaskToCategory(activeProjectId, title, description, creator);
+    const activeProject = projects.find((p) => p.id === activeProjectId);
+    if (!activeProject?.categories.length) return alert("No categories available");
+
+    const categoryId = activeProject.categories[0].id;
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: activeProject._id,
+          categoryId: activeProject.categories[0]._id,
+          title,
+          description,
+          creator,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add task");
+      }
+
+      const newTask = await response.json();
+
+      addTaskToCategory(activeProjectId, categoryId, newTask);
+    } catch (error) {
+      alert("Error adding task: " + error.message);
     }
   };
 
-  const activeProject = projects.find(p => p.id === activeProjectId);
-  console.log("Active Project:", activeProject);
+  const activeProject = projects.find((p) => p.id === activeProjectId);
 
   return (
     <>
       <Header>
-        <img src="assets/it-velhot.png" alt="Logo" style={{ height: "40px", marginRight: "9rem", marginLeft: "2rem" }} />
-        {projects.map(project => (
+        <img
+          src="assets/it-velhot.png"
+          alt="Logo"
+          style={{ height: "40px", marginRight: "9rem", marginLeft: "2rem" }}
+        />
+        {projects.map((project) => (
           <Button
             key={project.id}
             className={project.id === activeProjectId ? "active" : ""}
@@ -40,38 +67,38 @@ function App() {
         ))}
       </Header>
 
-        {activeProject && (
-  <div className="project-details bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
-    <h2 className="text-3xl font-extrabold text-gray-900 mb-6">{activeProject.name}</h2>
+      {activeProject && (
+        <div className="project-details bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-6">{activeProject.name}</h2>
 
-    <Button className="mb-8 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-300" onClick={addTask}>
-      + Luo Tehtävä
-    </Button>
+          <Button
+            className="mb-8 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-300"
+            onClick={addTask}
+          >
+            + Luo Tehtävä
+          </Button>
 
-    {activeProject.categories.map(category => (
-  <div key={category.id} className="category mb-12">
-    <h3 className="text-2xl font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3">
-      {category.name}
-    </h3>
+          {activeProject.categories.map((category) => (
+            <div key={category.id} className="category mb-12">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3">
+                {category.name}
+              </h3>
 
-    {category.tasks.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {category.tasks.map(task => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </div>
-    ) : (
-      <p className="text-gray-500 italic">Ei Tehtäviä.</p>
-    )}
-  </div>
-))}
-
-  </div>
-)}
-
+              {category.tasks.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                  {category.tasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Ei Tehtäviä.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }
-
 
 export default App;
