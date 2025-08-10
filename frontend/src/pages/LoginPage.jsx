@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import "./LoginPage.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -14,18 +18,19 @@ export default function LoginPage() {
       const res = await fetch(`https://tiimity-backend.onrender.com/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
       if (!isSignup) {
-        // Save JWT token for future requests
         localStorage.setItem("token", data.token);
-        alert("✅ Login successful");
+        login(username, password);
+        alert("Kirjautuminen onnistui!");
+        navigate("/dashboard");
       } else {
-        alert("✅ Signup successful! Please log in.");
+        alert("Rekisteröityminen onnistui!");
         setIsSignup(false);
       }
     } catch (err) {

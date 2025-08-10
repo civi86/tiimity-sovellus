@@ -2,21 +2,56 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
+const API_URL = "https://tiimity-backend.onrender.com";
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const login = (username, password) => {
-    setUser({ username });
+  async function login(username, password) {
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Login failed");
+
+      setUser({ username: data.username });
+      setToken(data.token);
+    } catch (error) {
+      console.error("Login error:", error.message);
+    }
+  }
+
+  async function signup(username, password) {
+    try {
+      const res = await fetch(`${API_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Signup failed");
+
+      setUser({ username });
+    } catch (error) {
+      console.error("Signup error:", error.message);
+    }
+  }
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
   };
-
-  const signup = (username, password) => {
-    setUser({ username });
-  };
-
-  const logout = () => setUser(null);
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, token, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
