@@ -28,7 +28,7 @@ export default function TaskDetails() {
     return (
       <div className="task-details-container">
         <p>Projektia ei löytynyt.</p>
-        <Link className="back-link" to="/">Takaisin</Link>
+        <Link className="back-link" to="/dashboard">Takaisin</Link>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function TaskDetails() {
       <p><strong>Projektin luoja:</strong> {foundTask.creator || "Unknown"}</p>
       <p><strong>Valmis?:</strong> {foundTask.completed ? "Valmis" : "Ei"}</p>
 
-      <Link className="back-link" to="/">← Takaisin projekteihin</Link>
+      <Link className="back-link" to="/dashboard">← Takaisin projekteihin</Link>
     </div>
   </>
 );

@@ -1,180 +1,185 @@
-import { createContext, useReducer, useContext } from "react";
+import { createContext, useReducer, useContext, useEffect } from "react";
+
+import AddTask from "./AddTask";
+
+export default function Project({ project }) {
+  return (
+    <div>
+      <h2>{project.name}</h2>
+      {project.categories.map(category => (
+        <div key={category.id}>
+          <h3>{category.name}</h3>
+          <ul>
+            {category.tasks.map(task => (
+              <li key={task.id}>{task.title}</li>
+            ))}
+          </ul>
+
+          {category.name === "Odottaa ryhmää" && (
+            <AddTask projectId={project.id} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const ProjectsContext = createContext();
 
 const initialState = {
-  projects: [
-    {
-      id: 1,
-      name: "Python Ryhmätyö: Peliprojekti #631",
-      categories: [
-        {
-          id: 1,
-          name: "Odottaa ryhmää",
-          tasks: []
-        },
-        {
-          id: 2,
-          name: "Projekti käynnissä",
-          tasks: []
-        },
-        {
-          id: 3,
-          name: "Projekti valmis",
-          tasks: []
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "JavaScript Canvas API #658",
-      categories: [
-        {
-          id: 1,
-          name: "Projektit",
-          tasks: []
-        }
-      ]
-    },
-    {
-      id: 3,
-      name: "OHJ: Ohjelmointi-tutkinnonosan NÄYTTÖ #664",
-      categories: [
-        {
-          id: 1,
-          name: "Projektit",
-          tasks: []
-        }
-      ]
-    },
-    {
-      id: 4,
-      name: "OKT: Ohjelmistokehittäjänä toimiminen - NÄYTTÖ #753",
-      categories: [
-        {
-          id: 1,
-          name: "Projektit",
-          tasks: []
-        }
-      ]
-    }
-  ],
+  projects: [],
   activeProjectId: null,
   isLoading: false,
   error: null,
-  
 };
 
-
 function reducer(state, action) {
-    switch (action.type) {
-        case "projects/loaded":
+  switch (action.type) {
+    case "projects/loaded":
+      return {
+        ...state,
+        projects: action.payload.map(p => ({
+          ...p,
+          id: p._id,  // backend _id as project frontend id
+          categories: p.categories.map((c, index) => ({
+            ...c,
+            id: index,   // static frontend id: 0,1,2,3
+           _id: c._id,  // backend _id for API calls
+           tasks: c.tasks.map((t) => ({ ...t, id: t._id, _id: t._id })),
+          })),
+        })),
+        isLoading: false,
+        error: null,
+      };
+
+    case "projects/loading":
+      return { ...state, isLoading: true, error: null };
+    case "projects/error":
+      return { ...state, isLoading: false, error: action.payload };
+    case "projects/add":
+      return { ...state, projects: [...state.projects, action.payload] };
+    case "projects/remove":
+      return {
+        ...state,
+        projects: state.projects.filter((p) => p.id !== action.payload),
+      };
+    case "projects/setActive":
+      return { ...state, activeProjectId: action.payload };
+    case "projects/addTask":
+      const { projectId, categoryId, task } = action.payload;
+      return {
+        ...state,
+        projects: state.projects.map((project) => {
+          if (project.id === projectId) {
             return {
-                ...state,
-                projects: action.payload,
-                isLoading: false,
-                error: null,
+              ...project,
+              categories: project.categories.map((category) => {
+                if (category.id === categoryId) {
+                  return {
+                    ...category,
+                    tasks: [...category.tasks, task],
+                  };
+                }
+                return category;
+              }),
             };
-        case "projects/loading":
-            return {
-                ...state,
-                isLoading: true,
-                error: null,
-            };
-        case "projects/error":
-            return {
-                ...state,
-                isLoading: false,
-                error: action.payload,
-            };
-        case "projects/add":
-            return {
-                ...state,
-                projects: [...state.projects, action.payload],
-            };
-        case "projects/remove":
-            return {
-                ...state,
-                projects: state.projects.filter(project => project.id !== action.payload),
-            };
-        case "projects/setActive":
-            return {
-                ...state,
-                activeProjectId: action.payload,
-            };
-        case "projects/addTask":
-            const { projectId, task } = action.payload;
-            return {
-                ...state,
-                projects: state.projects.map(project => { 
-                    if (project.id === projectId) {
-                        return {
-                            ...project,
-                            categories: project.categories.map(category => {
-                                if (category.id === project.categories[0].id) {
-                                    return {
-                                        ...category,
-                                        tasks: [...category.tasks, task]
-                                    };
-                                }
-                                return category;
-                            })
-                        };
-                    }
-                    return project;
-                })
-            };
-        default:
-            return state;
-    }
+          }
+          return project;
+        }),
+      };
+    default:
+      return state;
+  }
 }
 
 export function ProjectsProvider({ children }) {
-    const [{projects, activeProjectId}, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { projects, activeProjectId } = state;
 
-  // LISÄÄ LOPUT TARVITTAVAT FUNKTIOT
+  // Fetch projects from backend on mount
+  useEffect(() => {
+    async function loadProjects() {
+      dispatch({ type: "projects/loading" });
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects`);
+        if (!res.ok) throw new Error("Failed to fetch projects");
+        const data = await res.json();
+        dispatch({ type: "projects/loaded", payload: data });
+      } catch (err) {
+        dispatch({ type: "projects/error", payload: err.message });
+      }
+    }
+    loadProjects();
+  }, []);
 
   async function addProject(project) {
-      // API KUTSU
-      
-      dispatch({ type: "projects/add", payload: project });
+    // API call can go here
+    dispatch({ type: "projects/add", payload: project });
   }
 
-  async function addTaskToCategory(projectId, title, description = "", creator = "")  {
-    // Convert the above logic to use dispatch
-    dispatch({
-        type: "projects/addTask",
-        payload: { projectId, task: { id: Date.now(), title, description, creator, completed: false }}
-    });
-};
-
-
   async function removeProject(project) {
-      // API KUTSU TÄHÄN
-
-      dispatch({ type: "projects/remove", payload: project.id });
+    // API call can go here
+    dispatch({ type: "projects/remove", payload: project.id });
   }
 
   function setActiveProject(projectId) {
-      // API KUTSU TÄHÄN
-
-      dispatch({ type: "projects/setActive", payload: projectId });
+    dispatch({ type: "projects/setActive", payload: projectId });
   }
 
+  async function addTaskToCategory(projectId, categoryId, taskFromFrontend) {
+  try {
+    // Find the project locally
+    const project = projects.find(p => p.id === projectId);
+    if (!project) throw new Error("Project not found");
 
-  // LOPETA FUNKTIOIDEN LISÄÄMINEN
+    // Find the category
+    const category = project.categories.find(c => c._id === categoryId);
+    if (!category) throw new Error("Category not found");
 
-      return (
-      <ProjectsContext.Provider value={{ projects, activeProjectId, addProject, removeProject, setActiveProject, addTaskToCategory }}>
-          {children}
-      </ProjectsContext.Provider>
+    // Add the task locally
+    category.tasks.push(taskFromFrontend);
+
+    // Send the full updated project to backend
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(project),
+    });
+
+    const updatedProject = await res.json();
+
+    if (!res.ok) {
+      throw new Error(updatedProject.message || "Failed to update project");
+    }
+
+    return updatedProject; // optional: return updated project
+  } catch (error) {
+    console.error("Error updating project:", error);
+    alert("Error updating project: " + error.message);
+  }
+}
+
+
+  return (
+    <ProjectsContext.Provider
+      value={{
+        projects,
+        activeProjectId,
+        addProject,
+        removeProject,
+        setActiveProject,
+        addTaskToCategory,
+      }}
+    >
+      {children}
+    </ProjectsContext.Provider>
   );
 }
 
 export function useProjects() {
-    const context = useContext(ProjectsContext);
-    if (!context) {
-        throw new Error("useProjects must be used within a ProjectsProvider");
-    }
-    return context;
+  const context = useContext(ProjectsContext);
+  if (!context) {
+    throw new Error("useProjects must be used within a ProjectsProvider");
+  }
+  return context;
 }

@@ -15,36 +15,35 @@ function App() {
     const description = prompt("Syötä tehtävän kuvaus:") || "";
     const creator = prompt("Syötä nimesi:") || "Unknown";
 
-    const activeProject = projects.find((p) => p.id === activeProjectId);
-    if (!activeProject?.categories.length) return alert("No categories available");
+    const activeProject = projects.find(p => p.id === activeProjectId);
+    if (!activeProject) return alert("Valitse projekti ensin");
 
-    const categoryId = activeProject.categories[0].id;
+    const category = activeProject.categories[0]; // first category
+    const newTask = { title, description, creator };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/tasks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: activeProject._id,
-          categoryId: activeProject.categories[0]._id,
-          title,
-          description,
-          creator,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/projects/${activeProject._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(activeProject), // send full updated project
+       }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to add task");
+      const updatedProject = await res.json();
+
+      if (!res.ok) {
+        throw new Error(updatedProject.message || "Failed to update project");
       }
 
-      const newTask = await response.json();
-
-      addTaskToCategory(activeProjectId, categoryId, newTask);
+    // Update frontend state
+      addTaskToCategory(activeProject.id, category._id, newTask);
     } catch (error) {
-      alert("Error adding task: " + error.message);
+      alert("Error updating project: " + error.message);
     }
   };
+
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
 

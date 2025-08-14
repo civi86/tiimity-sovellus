@@ -5,10 +5,10 @@ export default function TaskCard({ task }) {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(task.likes || 0);
 
-  const fakeCommentsCount = 12; // static visual comment count
+  const fakeCommentsCount = 12;
 
   const toggleLike = (e) => {
-    e.preventDefault(); // prevent navigating when clicking the button inside Link
+    e.preventDefault();
     if (liked) {
       setLikesCount(likesCount - 1);
     } else {
@@ -19,7 +19,7 @@ export default function TaskCard({ task }) {
 
   return (
     <Link
-        to={`/task/${task.id}`}
+        to={`/task/${task._id}`}
   className="block group transform transition duration-300 hover:scale-[1.05] hover:shadow-xl no-underline"
   aria-label={`View details for task: ${task.title}`}
     >
