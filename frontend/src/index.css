@@ -23,19 +23,19 @@ header button {
   cursor: pointer;
   padding: 0.5rem 1rem;
   border: none;
-  background-color: #60ff30;
-  color: #000000;
+  background: linear-gradient(180deg, #8c00ff, #7700d8);
+  color: #ffffff;
   border-radius: 4px;
   font-weight: 600;
   transition: background-color 0.2s ease;
 }
 
 header button:hover {
-  background-color: #34861b;
+  background: linear-gradient(180deg, #7200cf, #6000af);
 }
 
 header button.active {
-  background-color: #8c00ff;
+  background: linear-gradient(180deg, #0400ff, rgb(11, 0, 170));
   color: white;
 }
 

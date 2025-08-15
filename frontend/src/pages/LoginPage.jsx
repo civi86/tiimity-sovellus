@@ -34,7 +34,7 @@ export default function LoginPage() {
         setIsSignup(false);
       }
     } catch (err) {
-      alert("❌ " + err.message);
+      alert("Error:" + err.message);
     }
   }
 

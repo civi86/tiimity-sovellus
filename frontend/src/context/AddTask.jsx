@@ -19,11 +19,13 @@ export default function AddTask({ projectId }) {
       description: "",
       creator: "Unknown",
       completed: false,
+      github: "",
+      teams: "",
     };
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}/categories/${waitingCategory.id}/tasks`,
+        `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}/categories/${waitingCategory._id}/tasks`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -37,12 +39,16 @@ export default function AddTask({ projectId }) {
       }
 
       const savedTask = await res.json();
+
+      savedTask.id = savedTask._id;
+
       await addTaskToCategory(projectId, waitingCategory.id, savedTask);
       setTitle("");
     } catch (err) {
       console.error(err.message);
     }
   };
+
 
   return (
     <div style={{ marginTop: "1rem" }}>

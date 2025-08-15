@@ -2,6 +2,7 @@ import { useProjects } from "./context/ProjectsContext";
 import Button from "./components/Button";
 import Header from "./components/Header";
 import TaskCard from "./components/TaskCard";
+import "./app.css";
 
 function App() {
   const { projects, activeProjectId, setActiveProject, addTaskToCategory } = useProjects();
@@ -34,13 +35,12 @@ function App() {
       const updatedProject = await res.json();
 
       if (!res.ok) {
-        throw new Error(updatedProject.message || "Failed to update project");
+        throw new Error(updatedProject.message || "Error");
       }
 
-    // Update frontend state
       addTaskToCategory(activeProject.id, category._id, newTask);
     } catch (error) {
-      alert("Error updating project: " + error.message);
+      alert("Error: " + error.message);
     }
   };
 
@@ -71,7 +71,7 @@ function App() {
           <h2 className="text-3xl font-extrabold text-gray-900 mb-6">{activeProject.name}</h2>
 
           <Button
-            className="mb-8 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-300"
+            className="create-task-button"
             onClick={addTask}
           >
             + Luo Tehtävä

@@ -18,12 +18,12 @@ export function AuthProvider({ children }) {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Login failed");
+      if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
 
       setUser({ username: data.username });
       setToken(data.token);
     } catch (error) {
-      console.error("Login error:", error.message);
+      console.error("Error:", error.message);
     }
   }
 
@@ -37,11 +37,11 @@ export function AuthProvider({ children }) {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Signup failed");
+      if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
 
       setUser({ username });
     } catch (error) {
-      console.error("Signup error:", error.message);
+      console.error("Error:", error.message);
     }
   }
 

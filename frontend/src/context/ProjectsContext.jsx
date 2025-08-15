@@ -1,29 +1,5 @@
 import { createContext, useReducer, useContext, useEffect } from "react";
 
-import AddTask from "./AddTask";
-
-export default function Project({ project }) {
-  return (
-    <div>
-      <h2>{project.name}</h2>
-      {project.categories.map(category => (
-        <div key={category.id}>
-          <h3>{category.name}</h3>
-          <ul>
-            {category.tasks.map(task => (
-              <li key={task.id}>{task.title}</li>
-            ))}
-          </ul>
-
-          {category.name === "Odottaa ryhmää" && (
-            <AddTask projectId={project.id} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 const ProjectsContext = createContext();
 
 const initialState = {
@@ -44,40 +20,32 @@ function reducer(state, action) {
           categories: p.categories.map((c, index) => ({
             ...c,
             id: index,
-           _id: c._id,
-           tasks: c.tasks.map((t) => ({ ...t, id: t._id, _id: t._id })),
+            _id: c._id,
+            tasks: c.tasks.map(t => ({ ...t, id: t._id, _id: t._id })),
           })),
         })),
         isLoading: false,
         error: null,
       };
-
     case "projects/loading":
       return { ...state, isLoading: true, error: null };
     case "projects/error":
       return { ...state, isLoading: false, error: action.payload };
     case "projects/add":
       return { ...state, projects: [...state.projects, action.payload] };
-    case "projects/remove":
+    case "projects/deleteTask": {
+      const { projectId, categoryId, taskId } = action.payload;
       return {
         ...state,
-        projects: state.projects.filter((p) => p.id !== action.payload),
-      };
-    case "projects/setActive":
-      return { ...state, activeProjectId: action.payload };
-    case "projects/addTask":
-      const { projectId, categoryId, task } = action.payload;
-      return {
-        ...state,
-        projects: state.projects.map((project) => {
+        projects: state.projects.map(project => {
           if (project.id === projectId) {
             return {
               ...project,
-              categories: project.categories.map((category) => {
+              categories: project.categories.map(category => {
                 if (category.id === categoryId) {
                   return {
                     ...category,
-                    tasks: [...category.tasks, task],
+                    tasks: category.tasks.filter(t => t.id !== taskId && t._id !== taskId),
                   };
                 }
                 return category;
@@ -87,10 +55,34 @@ function reducer(state, action) {
           return project;
         }),
       };
+    }
+    case "projects/setActive":
+      return { ...state, activeProjectId: action.payload };
+    case "projects/addTask": {
+      const { projectId, categoryId, task } = action.payload;
+      return {
+        ...state,
+        projects: state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              categories: project.categories.map(category => {
+                if (category.id === categoryId) {
+                  return { ...category, tasks: [...category.tasks, task] };
+                }
+                return category;
+              }),
+            };
+          }
+          return project;
+        }),
+      };
+    }
     default:
       return state;
   }
 }
+
 
 export function ProjectsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -124,34 +116,96 @@ export function ProjectsProvider({ children }) {
   }
 
   async function addTaskToCategory(projectId, categoryId, taskFromFrontend) {
-  try {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) throw new Error("Project not found");
+    try {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) throw new Error("Project not found");
 
-    const category = project.categories.find(c => c._id === categoryId);
-    if (!category) throw new Error("Category not found");
+      const category = project.categories.find(c => c._id === categoryId);
+      if (!category) throw new Error("Category not found");
 
-    category.tasks.push(taskFromFrontend);
+      category.tasks.push(taskFromFrontend);
 
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(project),
-    });
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(project),
+      });
 
-    const updatedProject = await res.json();
+      const updatedProject = await res.json();
+      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
 
-    if (!res.ok) {
-      throw new Error(updatedProject.message || "Failed to update project");
+      return updatedProject;
+    } catch (error) {
+      alert("Error updating project: " + error.message);
     }
-
-    return updatedProject;
-  } catch (error) {
-    console.error("Error updating project:", error);
-    alert("Error updating project: " + error.message);
   }
-}
 
+  async function moveTaskToCategory(projectId, taskId, targetCategoryName, updatedTask = null) {
+    try {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) throw new Error("Project not found");
+
+      const currentCategory = project.categories.find(c =>
+        c.tasks.some(t => t.id === taskId)
+      );
+      if (!currentCategory) throw new Error("Task not found in any category");
+
+      let task = currentCategory.tasks.find(t => t.id === taskId);
+
+      if (updatedTask) {
+        task = { ...task, ...updatedTask };
+      }
+
+      currentCategory.tasks = currentCategory.tasks.filter(t => t.id !== taskId);
+
+      const targetCategory = project.categories.find(c => c.name === targetCategoryName);
+      if (!targetCategory) throw new Error(`Category "${targetCategoryName}" not found`);
+
+      targetCategory.tasks.push(task);
+
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(project),
+      });
+
+      const updatedProject = await res.json();
+      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
+
+      return updatedProject;
+    } catch (error) {
+      alert("Error moving task: " + error.message);
+    }
+  }
+
+  async function deleteTaskFromCategory(projectId, categoryId, taskId) {
+    try {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) throw new Error("Project not found");
+
+      const category = project.categories.find(c => c.id === categoryId);
+      if (!category) throw new Error("Category not found");
+
+      category.tasks = category.tasks.filter(t => t.id !== taskId);
+
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(project),
+      });
+
+      const updatedProject = await res.json();
+      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
+
+      dispatch({ type: "projects/deleteTask", payload: { projectId, categoryId, taskId } });
+
+      return updatedProject;
+    } catch (error) {
+      alert("Error deleting task: " + error.message);
+    }
+  }
+
+  
 
   return (
     <ProjectsContext.Provider
@@ -162,6 +216,8 @@ export function ProjectsProvider({ children }) {
         removeProject,
         setActiveProject,
         addTaskToCategory,
+        moveTaskToCategory,
+        deleteTaskFromCategory,
       }}
     >
       {children}
@@ -171,8 +227,6 @@ export function ProjectsProvider({ children }) {
 
 export function useProjects() {
   const context = useContext(ProjectsContext);
-  if (!context) {
-    throw new Error("useProjects must be used within a ProjectsProvider");
-  }
+  if (!context) throw new Error("useProjects must be used within a ProjectsProvider");
   return context;
 }
