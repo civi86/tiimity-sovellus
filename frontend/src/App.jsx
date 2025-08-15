@@ -18,7 +18,7 @@ function App() {
     const activeProject = projects.find(p => p.id === activeProjectId);
     if (!activeProject) return alert("Valitse projekti ensin");
 
-    const category = activeProject.categories[0]; // first category
+    const category = activeProject.categories[0];
     const newTask = { title, description, creator };
 
     try {
@@ -27,7 +27,7 @@ function App() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(activeProject), // send full updated project
+          body: JSON.stringify(activeProject),
        }
       );
 

@@ -40,11 +40,11 @@ function reducer(state, action) {
         ...state,
         projects: action.payload.map(p => ({
           ...p,
-          id: p._id,  // backend _id as project frontend id
+          id: p._id,
           categories: p.categories.map((c, index) => ({
             ...c,
-            id: index,   // static frontend id: 0,1,2,3
-           _id: c._id,  // backend _id for API calls
+            id: index,
+           _id: c._id,
            tasks: c.tasks.map((t) => ({ ...t, id: t._id, _id: t._id })),
           })),
         })),
@@ -96,7 +96,6 @@ export function ProjectsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { projects, activeProjectId } = state;
 
-  // Fetch projects from backend on mount
   useEffect(() => {
     async function loadProjects() {
       dispatch({ type: "projects/loading" });
@@ -113,12 +112,10 @@ export function ProjectsProvider({ children }) {
   }, []);
 
   async function addProject(project) {
-    // API call can go here
     dispatch({ type: "projects/add", payload: project });
   }
 
   async function removeProject(project) {
-    // API call can go here
     dispatch({ type: "projects/remove", payload: project.id });
   }
 
@@ -128,18 +125,14 @@ export function ProjectsProvider({ children }) {
 
   async function addTaskToCategory(projectId, categoryId, taskFromFrontend) {
   try {
-    // Find the project locally
     const project = projects.find(p => p.id === projectId);
     if (!project) throw new Error("Project not found");
 
-    // Find the category
     const category = project.categories.find(c => c._id === categoryId);
     if (!category) throw new Error("Category not found");
 
-    // Add the task locally
     category.tasks.push(taskFromFrontend);
 
-    // Send the full updated project to backend
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -152,7 +145,7 @@ export function ProjectsProvider({ children }) {
       throw new Error(updatedProject.message || "Failed to update project");
     }
 
-    return updatedProject; // optional: return updated project
+    return updatedProject;
   } catch (error) {
     console.error("Error updating project:", error);
     alert("Error updating project: " + error.message);
