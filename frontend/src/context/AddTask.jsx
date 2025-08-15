@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useNavigate } from "react";
 import { useProjects } from "./ProjectsContext";
 
 export default function AddTask({ projectId }) {
   const [title, setTitle] = useState("");
   const { projects, addTaskToCategory } = useProjects();
+  const navigate = useNavigate();
 
   const handleAddTask = async () => {
     if (!title.trim()) return;
@@ -32,6 +33,11 @@ export default function AddTask({ projectId }) {
           body: JSON.stringify(newTask),
         }
       );
+
+      if (res.ok) {
+        alert("Projekti lisätty onnistuneesti!")
+        navigate("/dashboard");
+      }
 
       if (!res.ok) {
         const text = await res.text();

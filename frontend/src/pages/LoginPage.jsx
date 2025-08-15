@@ -39,33 +39,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-container">
-      <h1>{isSignup ? "Rekisteröidy" : "Kirjaudu"}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Käyttäjänimi"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
+    <>
+      <div className="welcome-container">
+        <img
+          src="assets/logo.png"
+          alt="Logo"
+          style={{ height: "80px", marginLeft: "12rem", marginBottom: "0rem" }}
         />
-        <input
-          type="password"
-          placeholder="Salasana"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">{isSignup ? "Rekisteröidy" : "Kirjaudu"}</button>
-      </form>
-      <p>
-        {isSignup
-          ? "Onko sinulla jo käyttäjä?"
-          : "Eikö sinulla ole vielä käyttäjää?"}{" "}
-        <button type="button" onClick={() => setIsSignup(!isSignup)}>
-          {isSignup ? "Kirjaudu" : "Rekisteröidy"}
-        </button>
-      </p>
-    </div>
+        <p>serveri on hidas käynnistymään kirjautumisessa menee hetki</p>
+      </div>
+
+      <div className="login-container">
+        <h1>{isSignup ? "Rekisteröidy" : "Kirjaudu"}</h1>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Käyttäjänimi"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Salasana"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">{isSignup ? "Rekisteröidy" : "Kirjaudu"}</button>
+        </form>
+        <p>
+          {isSignup
+            ? "Onko sinulla jo käyttäjä?"
+            : "Eikö sinulla ole vielä käyttäjää?"}{" "}
+          <button type="button" onClick={() => setIsSignup(!isSignup)}>
+            {isSignup ? "Kirjaudu" : "Rekisteröidy"}
+          </button>
+        </p>
+      </div>
+    </>
   );
 }

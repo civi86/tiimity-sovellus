@@ -2,10 +2,13 @@ import { useProjects } from "./context/ProjectsContext";
 import Button from "./components/Button";
 import Header from "./components/Header";
 import TaskCard from "./components/TaskCard";
-import "./app.css";
+import Sidebar from "./components/SideBar";
+import { useNavigate } from "react-router-dom";
+import "./App.css";
 
 function App() {
   const { projects, activeProjectId, setActiveProject, addTaskToCategory } = useProjects();
+  const navigate = useNavigate();
 
   const setSelectedProject = (projectId) => setActiveProject(projectId);
 
@@ -16,7 +19,7 @@ function App() {
     const description = prompt("Syötä tehtävän kuvaus:") || "";
     const creator = prompt("Syötä nimesi:") || "Unknown";
 
-    const activeProject = projects.find(p => p.id === activeProjectId);
+    const activeProject = projects.find((p) => p.id === activeProjectId);
     if (!activeProject) return alert("Valitse projekti ensin");
 
     const category = activeProject.categories[0];
@@ -29,12 +32,15 @@ function App() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(activeProject),
-       }
+        }
       );
 
       const updatedProject = await res.json();
 
-      if (!res.ok) {
+      if (res.ok) {
+        alert("Projekti lisätty onnistuneesti!");
+        navigate("/dashboard");
+      } else {
         throw new Error(updatedProject.message || "Error");
       }
 
@@ -44,16 +50,15 @@ function App() {
     }
   };
 
-
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   return (
     <>
       <Header>
         <img
-          src="assets/it-velhot.png"
+          src="assets/logo.png"
           alt="Logo"
-          style={{ height: "40px", marginRight: "9rem", marginLeft: "2rem" }}
+          style={{ height: "40px", marginRight: "3rem", marginLeft: "1rem" }}
         />
         {projects.map((project) => (
           <Button
@@ -64,38 +69,64 @@ function App() {
             {project.name}
           </Button>
         ))}
+        <img
+          src="assets/it-velhot.png"
+          alt="Logo"
+          style={{ height: "40px", marginRight: "0rem", marginLeft: "3rem" }}
+        />
       </Header>
 
-      {activeProject && (
-        <div className="project-details bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-6">{activeProject.name}</h2>
+      <div className="app-container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <div style={{ display: "flex", flex: 1 }}>
+          <Sidebar />
 
-          <Button
-            className="create-task-button"
-            onClick={addTask}
-          >
-            + Luo Tehtävä
-          </Button>
-
-          {activeProject.categories.map((category) => (
-            <div key={category.id} className="category mb-12">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3">
-                {category.name}
-              </h3>
-
-              {category.tasks.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                  {category.tasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">Ei Tehtäviä.</p>
-              )}
+          <div className="main-content" style={{ flex: 1, padding: "2rem" }}>
+            <div className="welcome-container">
+              <img
+                src="assets/logo.png"
+                alt="Logo"
+                style={{ height: "80px", marginBottom: "2rem" }}
+              />
+              <h1>Tervetuloa!</h1>
+              <p>
+                Valitse itsellesi sopiva projekti yläpalkista ja etsi itsellesi tiimikavereita!
+              </p>
             </div>
-          ))}
+
+            {activeProject && (
+              <div className="project-details bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
+                <h2 className="text-3xl font-extrabold text-gray-900 mb-6">
+                  {activeProject.name}
+                </h2>
+                <Button className="create-task-button" onClick={addTask}>
+                  + Luo Tehtävä
+                </Button>
+
+                {activeProject.categories.map((category) => (
+                  <div key={category.id} className="category mb-12">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-6 border-b border-gray-300 pb-3">
+                      {category.name}
+                    </h3>
+                    {category.tasks.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        {category.tasks.map((task) => (
+                          <TaskCard key={task.id} task={task} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">Ei Tehtäviä.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+
+        <footer className="footer">
+          &copy; 2025 Tiimity. All rights reserved.
+        </footer>
+      </div>
     </>
   );
 }
