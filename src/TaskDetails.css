@@ -47,7 +47,7 @@
 .task-details-container a.back-link {
   display: block;
   width: 100%;                       
-  color: #8c00ff;  
+  color: #00a732;  
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -57,7 +57,7 @@
 }
 
 .task-details-container a.back-link:hover {
-  color: #6000af;
+  color: #00c020;
 }
 
 .task-details-container button:hover {

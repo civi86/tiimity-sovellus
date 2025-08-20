@@ -85,7 +85,9 @@ export function AuthProvider({ children }) {
       token: user.token,
       login,
       signup,
-      logout
+      logout,
+      isAdmin: user.isAdmin,
+      user,
     }}
   >{children}</AuthContext.Provider>
   );

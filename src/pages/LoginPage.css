@@ -16,6 +16,10 @@
   font-size: 2rem;
 }
 
+.login-container a {
+  color: #34861b;
+}
+
 .login-container input {
   width: 92%;
   padding: 0.75rem 1rem;
@@ -24,6 +28,7 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
+  color: #333;
 }
 
 .login-container input:focus {
@@ -34,7 +39,7 @@
 .login-container button[type="submit"] {
   width: 100%;
   padding: 0.85rem;
-  background: linear-gradient(180deg, #c300ff, #530068);
+  background: linear-gradient(180deg, #34861b, #256e0e);
   color: white;
   border: none;
   border-radius: 8px;
@@ -45,7 +50,7 @@
 }
 
 .login-container button[type="submit"]:hover {
-  background: linear-gradient(180deg, #7200cf, #8c00ff);
+  background: linear-gradient(180deg,#34861b, #256e0e);
 }
 
 .login-container p {

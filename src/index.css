@@ -1,13 +1,27 @@
 @import "tailwindcss";
 
+
+#gradient-canvas {
+  width: 100vw;
+  height: 100vh;
+  position: fixed; /* so it stays behind content */
+  top: 0;
+  left: 0;
+  --gradient-color-1: #0b2e13;
+  --gradient-color-2: #74da15;
+  --gradient-color-3: #a4bd39;
+  --gradient-color-4: #189100;
+  z-index: -100;
+}
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background: url('/assets/bg.jpg') no-repeat center center fixed;
-  background-size: cover;
-  color: #4e4e4e;
+  height: 100vh;
+  color: #f0f5e1;
+
 }
+
 
 header {
   background-color: #242424;
