@@ -22,6 +22,9 @@ export default function TaskDetails() {
         foundTask = task;
         foundCategory = category;
         foundProject = project;
+        console.log(foundTask);
+        console.log(foundTask.creatorAccountName);
+        console.log(foundTask.createdAt);
         return true;
       }
       return false;
