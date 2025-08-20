@@ -20,7 +20,10 @@ export function AuthProvider({ children }) {
 
       if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
 
-      setUser({ username: data.username });
+      setUser({ 
+        username: data.username, 
+        isAdmin: data.isAdmin || false 
+      });
       setToken(data.token);
     } catch (error) {
       console.error("Error:", error.message);
@@ -39,7 +42,11 @@ export function AuthProvider({ children }) {
 
       if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
 
-      setUser({ username });
+      setUser({ 
+        username: data.username, 
+        isAdmin: data.isAdmin || false
+      });
+      
     } catch (error) {
       console.error("Error:", error.message);
     }

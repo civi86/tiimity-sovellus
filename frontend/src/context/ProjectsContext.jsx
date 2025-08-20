@@ -1,4 +1,5 @@
 import { createContext, useReducer, useContext, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 const ProjectsContext = createContext();
 
@@ -78,6 +79,33 @@ function reducer(state, action) {
         }),
       };
     }
+    case "projects/updateTaskParticipants": {
+      const { projectId, categoryId, taskId, participants } = action.payload;
+      return {
+        ...state,
+        projects: state.projects.map(project => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              categories: project.categories.map(category => {
+                if (category.id === categoryId) {
+                  return {
+                    ...category,
+                    tasks: category.tasks.map(task => {
+                      if (task.id === taskId) return { ...task, participants };
+                      return task;
+                    }),
+                  };
+                }
+               return category;
+              }),
+            };
+          }
+          return project;
+        }),
+      };
+    }
+
     default:
       return state;
   }
@@ -87,6 +115,7 @@ function reducer(state, action) {
 export function ProjectsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { projects, activeProjectId } = state;
+  const { user } = useAuth();
 
   useEffect(() => {
     async function loadProjects() {
@@ -181,12 +210,20 @@ export function ProjectsProvider({ children }) {
   async function deleteTaskFromCategory(projectId, categoryId, taskId) {
     try {
       const project = projects.find(p => p.id === projectId);
-      if (!project) throw new Error("Project not found");
+      if (!project) throw new Error("Error");
 
       const category = project.categories.find(c => c.id === categoryId);
-      if (!category) throw new Error("Category not found");
+      if (!category) throw new Error("Error");
 
-      category.tasks = category.tasks.filter(t => t.id !== taskId);
+      const task = category.tasks.find(t => t.id === taskId || t._id === taskId);
+      if (!task) throw new Error("Error");
+
+      if (task.creatorAccountName !== user.username && !user.isAdmin) {
+        alert("Vain tehtävän luonut käyttäjä tai admin voi poistaa tämän tehtävän.");
+        return;
+      }
+
+      category.tasks = category.tasks.filter(t => t.id !== taskId && t._id !== taskId);
 
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
         method: "PUT",
@@ -195,15 +232,48 @@ export function ProjectsProvider({ children }) {
       });
 
       const updatedProject = await res.json();
-      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
+      if (!res.ok) throw new Error(updatedProject.message || "Error");
 
       dispatch({ type: "projects/deleteTask", payload: { projectId, categoryId, taskId } });
 
       return updatedProject;
     } catch (error) {
-      alert("Error deleting task: " + error.message);
+      alert("Error: " + error.message);
     }
   }
+
+  async function joinTask(projectId, categoryId, taskId, username) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    const category = project.categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    const task = category.tasks.find(t => t.id === taskId || t._id === taskId);
+    if (!task) return;
+
+    task.participants = task.participants || [];
+    if (!task.participants.some(p => p.username === username)) {
+      task.participants.push({ username });
+
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(project),
+      });
+
+      dispatch({
+        type: "projects/updateTaskParticipants",
+        payload: {
+          projectId,
+          categoryId,
+          taskId,
+          participants: task.participants
+        }
+      });
+    }
+  }
+
 
   
 
@@ -218,6 +288,7 @@ export function ProjectsProvider({ children }) {
         addTaskToCategory,
         moveTaskToCategory,
         deleteTaskFromCategory,
+        joinTask,
       }}
     >
       {children}

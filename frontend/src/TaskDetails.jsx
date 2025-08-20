@@ -1,11 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "./context/ProjectsContext";
+import { useAuth } from "./context/AuthContext";
+import { useState } from "react";
 import Header from "./components/Header";
 import "./TaskDetails.css";
 
 export default function TaskDetails() {
   const { taskId } = useParams();
-  const { projects, moveTaskToCategory } = useProjects();
+  const { projects, moveTaskToCategory, deleteTaskFromCategory, joinTask } = useProjects();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   let foundTask = null;
@@ -34,8 +37,6 @@ export default function TaskDetails() {
     );
   }
 
-  const { deleteTaskFromCategory } = useProjects();
-
   const handleDelete = async () => {
     if (window.confirm("Haluatko varmasti poistaa tämän projektin?")) {
       try {
@@ -44,16 +45,13 @@ export default function TaskDetails() {
           foundCategory.id,
           foundTask.id || foundTask._id
         );
-        alert("Projekti poistettu!");
         navigate("/dashboard");
       } catch (error) {
         console.error(error);
         alert("Error");
-      } 
+      }
     }
   };
-
-
 
   const handleMoveToInProgress = async () => {
     const github = prompt("Syötä linkki GitHub-repositorioon");
@@ -84,6 +82,24 @@ export default function TaskDetails() {
     navigate("/dashboard");
   };
 
+  const [joined, setJoined] = useState(
+    foundTask.participants?.includes(user?.username) || false
+  );
+
+  const handleJoin = async () => {
+    if (!user) return alert("Kirjaudu ensin liittyäksesi tehtävään!");
+    if (joined) return alert("Olet jo liittynyt tähän tehtävään!");
+
+    await joinTask(
+      foundProject.id,
+      foundCategory.id,
+      foundTask._id || foundTask.id,
+      user.username
+    );
+
+    alert("Liityit projektiin!");
+  };
+
   return (
     <>
       <Header>
@@ -100,15 +116,28 @@ export default function TaskDetails() {
         <p><strong>Projektin kategoria:</strong> {foundCategory.name}</p>
         <p><strong>Projektin aihe:</strong> {foundTask.title || "Ei otsikkoa"}</p>
         <p><strong>Projektin kuvaus:</strong> {foundTask.description || "Ei kuvausta"}</p>
-        <p><strong>Projektin luoja:</strong> {foundTask.creator || "Tuntematon"}</p>
+        <p><strong>Projektin luoja:</strong> {foundTask.creatorAccountName || "Tuntematon"}</p>
         <p><strong>Projekti luotu:</strong> {foundTask.createdAt || "Tuntematon"}</p>
         <p><strong>GitHub repositorio:</strong> {foundTask.github || "Ei linkkiä"}</p>
         <p><strong>Teams linkki:</strong> {foundTask.teams || "Ei linkkiä"}</p>
+
+        <p>
+          <strong>Osallistujat:</strong>{" "}
+          {foundTask.participants && foundTask.participants.length > 0
+            ? foundTask.participants
+              .map(p => (typeof p === "string" ? p : p.username))
+              .join(", ")
+            : "Ei osallistujia"}
+        </p>
+
 
         <Link className="back-link" to="/dashboard">← Takaisin projekteihin</Link>
         <button onClick={handleMoveToInProgress}>Siirrä projekti työn alle&nbsp;</button>
         <button onClick={handleMoveToInComplete}>Siirrä projekti valmiisiin</button>
         <button onClick={handleDelete}>Poista projekti</button>
+
+        {!joined && <button onClick={handleJoin}>Liity projektiin</button>}
+        {joined && <span style={{ color: "green", fontWeight: "bold" }}>Olet liittynyt projektiin!</span>}
       </div>
     </>
   );

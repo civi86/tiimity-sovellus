@@ -4,10 +4,12 @@ import Header from "./components/Header";
 import TaskCard from "./components/TaskCard";
 import Sidebar from "./components/SideBar";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 import "./App.css";
 
 function App() {
   const { projects, activeProjectId, setActiveProject, addTaskToCategory } = useProjects();
+  const { user } = useAuth(); 
   const navigate = useNavigate();
 
   const setSelectedProject = (projectId) => setActiveProject(projectId);
@@ -17,13 +19,17 @@ function App() {
     if (!title) return;
 
     const description = prompt("Syötä tehtävän kuvaus:") || "";
-    const creator = prompt("Syötä nimesi:") || "Unknown";
 
     const activeProject = projects.find((p) => p.id === activeProjectId);
     if (!activeProject) return alert("Valitse projekti ensin");
 
     const category = activeProject.categories[0];
-    const newTask = { title, description, creator };
+    
+    const newTask = { 
+      title, 
+      description, 
+      creatorAccountName: user.username || "Unknown" 
+    };
 
     try {
       const res = await fetch(
@@ -85,7 +91,7 @@ function App() {
               <img
                 src="assets/logo.png"
                 alt="Logo"
-                style={{ height: "80px", marginBottom: "2rem" }}
+                style={{ height: "80px", marginBottom: "2rem", marginLeft: "12.5rem" }}
               />
               <h1>Tervetuloa!</h1>
               <p>
