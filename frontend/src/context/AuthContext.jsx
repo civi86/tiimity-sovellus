@@ -1,12 +1,32 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 const API_URL = "https://tiimity-backend.onrender.com";
 
+const getUser = () => {
+  const data = localStorage.getItem("user");
+  const user = data 
+    ? JSON.parse(data) 
+    : {
+        username: null,
+        isAdmin: false,
+        token: null
+      };
+  return user;
+};
+
+
+const saveUser = (user) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(getUser());
+
+  useEffect(() => {
+    saveUser(user);
+  }, [user]);
 
   async function login(username, password) {
     try {
@@ -22,9 +42,9 @@ export function AuthProvider({ children }) {
 
       setUser({ 
         username: data.username, 
-        isAdmin: data.isAdmin || false 
+        isAdmin: data.isAdmin || false,
+        token: data.token
       });
-      setToken(data.token);
     } catch (error) {
       console.error("Error:", error.message);
     }
@@ -46,6 +66,7 @@ export function AuthProvider({ children }) {
         username: data.username, 
         isAdmin: data.isAdmin || false
       });
+
       
     } catch (error) {
       console.error("Error:", error.message);
@@ -58,9 +79,17 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider
+    value={{
+      username: user.username ,
+      token: user.token,
+      login,
+      signup,
+      logout,
+      isAdmin: user.isAdmin,
+      user,
+    }}
+  >{children}</AuthContext.Provider>
   );
 }
 

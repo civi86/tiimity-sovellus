@@ -1,13 +1,27 @@
 @import "tailwindcss";
 
+
+#gradient-canvas {
+  width: 100vw;
+  height: 100vh;
+  position: fixed; /* so it stays behind content */
+  top: 0;
+  left: 0;
+  --gradient-color-1: #0b2e13;
+  --gradient-color-2: #74da15;
+  --gradient-color-3: #a4bd39;
+  --gradient-color-4: #189100;
+  z-index: -100;
+}
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background: url('/assets/bgif.gif') no-repeat center center fixed;
-  background-size: cover;
-  color: #4e4e4e;
+  height: 100vh;
+  color: #f0f5e1;
+
 }
+
 
 header {
   background-color: #242424;
@@ -23,7 +37,7 @@ header button {
   cursor: pointer;
   padding: 0.5rem 1rem;
   border: none;
-  background: linear-gradient(180deg, #c300ff, #530068);
+  background: linear-gradient(180deg, #335a2b, #a4bd39);
   color: #ffffff;
   border-radius: 4px;
   font-weight: 600;
@@ -31,11 +45,11 @@ header button {
 }
 
 header button:hover {
-  background: linear-gradient(180deg, #7200cf, #6000af);
+  background: linear-gradient(180deg, #335a2b, #a4bd39);
 }
 
 header button.active {
-  background: linear-gradient(180deg, #0400ff, rgb(11, 0, 170));
+  background: linear-gradient(180deg, #a4bd39, rgba(51,90,43,255));
   color: white;
 }
 

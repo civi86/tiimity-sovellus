@@ -1,9 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { Navigate } from "react-router-dom";
 import App from "./App.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import PageNotFound from "./pages/PageNotFound.jsx";
+
 import TaskDetails from "./TaskDetails.jsx";
 
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
@@ -12,13 +14,15 @@ import { ProjectsProvider } from "./context/ProjectsContext.jsx";
 import "./index.css";
 
 function Root() {
-  const { user } = useAuth();
+  const { username } = useAuth();
 
-  return user ? (
+  return username ? (
     <ProjectsProvider>
       <Routes>
+        <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<App />} />
         <Route path="/task/:taskId" element={<TaskDetails />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </ProjectsProvider>
   ) : (

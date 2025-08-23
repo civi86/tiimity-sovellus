@@ -5,7 +5,7 @@
   margin: 1rem 0;        
   padding: 0.6rem 1rem;
   color: #fff;  
-  background: linear-gradient(180deg, #0400ff, rgb(11, 0, 170));
+  background: linear-gradient(180deg, #007009, rgb(0, 121, 30));
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -14,16 +14,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.main-content {
-  margin-left: -15rem;
-}
-
 .welcome-container {
   max-width: 800px;
   margin: 4rem auto;
   padding: 3rem;
   text-align: center;
-  background: linear-gradient(180deg, #8c00ff, #cb47ff);
+  background: linear-gradient(180deg, #335a2b, #a4bd39);
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
   border-radius: 8px;
 }
@@ -44,8 +40,8 @@
 }
 
 .footer {
-  font-size: 1.5rem;
-  padding: 1rem;
+  font-size: 1.4rem;
+  padding: .5rem;
   text-align: center;
   background-color: rgb(36, 36, 36);
   color: white;

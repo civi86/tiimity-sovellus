@@ -20,7 +20,7 @@
   margin: 1rem 0;        
   padding: 0.6rem 1rem;
   color: #fff;  
-  background: linear-gradient(180deg, #c300ff, #530068);
+  background: linear-gradient(180deg, #335a2b, #a4bd39);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -47,7 +47,7 @@
 .task-details-container a.back-link {
   display: block;
   width: 100%;                       
-  color: #00880b;  
+  color: #00a732;  
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -57,9 +57,9 @@
 }
 
 .task-details-container a.back-link:hover {
-  color: #00a81c;
+  color: #00c020;
 }
 
 .task-details-container button:hover {
-  background: linear-gradient(180deg, #7200cf, #6000af);
+  background: linear-gradient(180deg, #335a2b, #a4bd39);
 }

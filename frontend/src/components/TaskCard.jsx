@@ -44,11 +44,11 @@ export default function TaskCard({ task }) {
             aria-pressed={liked}
             aria-label={liked ? "Unlike task" : "Like task"}
             className={`flex items-center space-x-1 focus:outline-none transition-colors duration-300 ${
-              liked ? "text-pink-600" : "text-gray-400 hover:text-green-600"
+              liked ? "text-green-600" : "text-gray-400 hover:text-green-600"
             }`}
           >
             <span className="text-lg" aria-hidden="true">
-              {liked ? "❤️" : "🤍"}
+              {liked ? "💚" : "🤍"}
             </span>
             <span className="text-sm select-none">{likesCount}</span>
           </button>

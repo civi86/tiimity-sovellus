@@ -8,7 +8,7 @@ import "./TaskDetails.css";
 export default function TaskDetails() {
   const { taskId } = useParams();
   const { projects, moveTaskToCategory, deleteTaskFromCategory, joinTask } = useProjects();
-  const { user } = useAuth();
+  const { username } = useAuth();
   const navigate = useNavigate();
 
   let foundTask = null;
@@ -22,9 +22,6 @@ export default function TaskDetails() {
         foundTask = task;
         foundCategory = category;
         foundProject = project;
-        console.log(foundTask);
-        console.log(foundTask.creatorAccountName);
-        console.log(foundTask.createdAt);
         return true;
       }
       return false;
@@ -86,7 +83,7 @@ export default function TaskDetails() {
   };
 
   const [joined, setJoined] = useState(
-    foundTask.participants?.includes(user?.username) || false
+    foundTask.participants?.includes(username) || false
   );
 
   const handleJoin = async () => {
@@ -97,7 +94,7 @@ export default function TaskDetails() {
       foundProject.id,
       foundCategory.id,
       foundTask._id || foundTask.id,
-      user.username
+      username
     );
 
     alert("Liityit projektiin!");
