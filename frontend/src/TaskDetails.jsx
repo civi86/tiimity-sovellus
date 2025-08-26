@@ -127,8 +127,12 @@ export default function TaskDetails() {
         <p><strong>Projektin kategoria:</strong> {foundCategory.name}</p>
         <p><strong>Projektin aihe:</strong> {foundTask.title || "Ei otsikkoa"}</p>
         <p><strong>Projektin kuvaus:</strong> {foundTask.description || "Ei kuvausta"}</p>
-        <p><strong>GitHub repositorio:</strong> {foundTask.github || "Ei linkkiä"}</p>
-        <p><strong>Teams linkki:</strong> {foundTask.teams || "Ei linkkiä"}</p>
+        {joined && (
+        <>
+          <p><strong>GitHub repositorio:</strong> {foundTask.github || "Ei linkkiä"}</p>
+          <p><strong>Teams linkki:</strong> {foundTask.teams || "Ei linkkiä"}</p>
+        </>
+        )}
 
         <p>
           <strong>Osallistujat:</strong>{" "}
