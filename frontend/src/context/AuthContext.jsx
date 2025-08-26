@@ -1,21 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
-
 const API_URL = "https://tiimity-backend.onrender.com";
 
 const getUser = () => {
   const data = localStorage.getItem("user");
-  const user = data 
-    ? JSON.parse(data) 
-    : {
-        username: null,
-        isAdmin: false,
-        token: null
-      };
-  return user;
+  return data ? JSON.parse(data) : { username: null, isAdmin: false, token: null };
 };
-
 
 const saveUser = (user) => {
   localStorage.setItem("user", JSON.stringify(user));
@@ -23,12 +14,14 @@ const saveUser = (user) => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getUser());
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     saveUser(user);
   }, [user]);
 
-  async function login(username, password) {
+  const login = async (username, password) => {
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -38,19 +31,27 @@ export function AuthProvider({ children }) {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
+      if (!res.ok) throw new Error(data.message || "Login failed");
 
-      setUser({ 
-        username: data.username, 
+      const loggedInUser = {
+        username: data.username,
+        token: data.token,
         isAdmin: data.isAdmin || false,
-        token: data.token
-      });
-    } catch (error) {
-      console.error("Error:", error.message);
-    }
-  }
+      };
+      setUser(loggedInUser);
+      saveUser(loggedInUser);
 
-  async function signup(username, password) {
+      return loggedInUser;
+    } catch (error) {
+      console.error("Login error:", error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (username, password) => {
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/signup`, {
         method: "POST",
@@ -59,37 +60,34 @@ export function AuthProvider({ children }) {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      if (!res.ok) throw new Error(data.message || "Kirjautuminen epäonnistui");
+      const newUser = {
+        username: data.username,
+        token: data.token || null,
+        isAdmin: data.isAdmin || false,
+      };
+      setUser(newUser);
+      saveUser(newUser);
 
-      setUser({ 
-        username: data.username, 
-        isAdmin: data.isAdmin || false
-      });
-
-      
+      return newUser;
     } catch (error) {
-      console.error("Error:", error.message);
+      console.error("Signup error:", error.message);
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
+    setUser({ username: null, isAdmin: false, token: null });
+    localStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider
-    value={{
-      username: user.username ,
-      token: user.token,
-      login,
-      signup,
-      logout,
-      isAdmin: user.isAdmin,
-      user,
-    }}
-  >{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, username: user.username, token: user.token, isAdmin: user.isAdmin, login, signup, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 

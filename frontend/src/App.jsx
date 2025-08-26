@@ -13,48 +13,52 @@ function App() {
 	const navigate = useNavigate();
 
 	const addTask = async () => {
-		const title = prompt("Syötä tehtävän nimi:");
-		if (!title) return;
+  		const title = prompt("Syötä tehtävän nimi:");
+  		if (!title) return;
 
-		const description = prompt("Syötä tehtävän kuvaus:") || "";
+  		const description = prompt("Syötä tehtävän kuvaus:") || "";
 
-		const activeProject = projects.find(p => p.id === activeProjectId);
-		if (!activeProject) return alert("Valitse projekti ensin");
+  		const activeProject = projects.find(p => p.id === activeProjectId);
+  		if (!activeProject) return alert("Valitse projekti ensin");
 
-		const category = activeProject.categories[0];
+  		const category = activeProject.categories[0];
+		  if (!category) return alert("Projekti ei sisällä kategorioita");
 
-		const newTask = {
-			title,
+ 		 category.creator = category.creator || username || "Unknown";
+
+ 		const newTask = {
+ 		   	title,
 			description,
-			creatorAccountName: username || "Unknown",
+ 		   	creator: username || "Unknown",
+    		participants: [],
+    		github: "",
+   		 	teams: "",
+  		};
+
+  		category.tasks.push(newTask);
+
+  		try {
+    		const res = await fetch(
+    		  `${import.meta.env.VITE_BACKEND_URL}/projects/${activeProject._id}`,
+    		  {
+    		    method: "PUT",
+    		    headers: { "Content-Type": "application/json" },
+    		    body: JSON.stringify(activeProject),
+    		  }
+    		);
+
+    		const updatedProject = await res.json();
+    		if (!res.ok) throw new Error(updatedProject.message || "Error");
+
+    		addTaskToCategory(activeProject.id, category.id, newTask);
+
+    		alert("Tehtävä lisätty onnistuneesti!");
+    		navigate("/dashboard");
+  		} catch (error) {
+    		alert("Error: " + error.message);
+  		}
 		};
 
-		try {
-			const res = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/projects/${
-					activeProject._id
-				}`,
-				{
-					method: "PUT",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(activeProject),
-				}
-			);
-
-			const updatedProject = await res.json();
-
-			if (res.ok) {
-				alert("Projekti lisätty onnistuneesti!");
-				navigate("/dashboard");
-			} else {
-				throw new Error(updatedProject.message || "Error");
-			}
-
-			addTaskToCategory(activeProject.id, category._id, newTask);
-		} catch (error) {
-			alert("Error: " + error.message);
-		}
-	};
 
 	const activeProject = projects.find(p => p.id === activeProjectId);
 

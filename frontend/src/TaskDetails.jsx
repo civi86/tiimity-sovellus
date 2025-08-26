@@ -1,15 +1,17 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProjects } from "./context/ProjectsContext";
 import { useAuth } from "./context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import "./TaskDetails.css";
 
 export default function TaskDetails() {
   const { taskId } = useParams();
   const { projects, moveTaskToCategory, deleteTaskFromCategory, joinTask } = useProjects();
-  const { username } = useAuth();
+  const { username, user } = useAuth();
   const navigate = useNavigate();
+
+  const [joined, setJoined] = useState(false);
 
   let foundTask = null;
   let foundCategory = null;
@@ -27,6 +29,12 @@ export default function TaskDetails() {
       return false;
     });
   });
+
+  useEffect(() => {
+    if (foundTask) {
+      setJoined(foundTask.participants?.includes(username) || false);
+    }
+  }, [foundTask, username]);
 
   if (!foundTask) {
     return (
@@ -48,7 +56,7 @@ export default function TaskDetails() {
         navigate("/dashboard");
       } catch (error) {
         console.error(error);
-        alert("Error");
+        alert("Virhe poistettaessa tehtävää");
       }
     }
   };
@@ -64,7 +72,7 @@ export default function TaskDetails() {
 
     const updatedTask = { ...foundTask, github, teams };
 
-    await moveTaskToCategory(foundProject.id, updatedTask._id, "Projekti käynnissä", updatedTask);
+    await moveTaskToCategory(foundProject.id, foundTask._id, "Projekti käynnissä", updatedTask);
 
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${foundProject.id}`, {
       method: "PUT",
@@ -82,22 +90,25 @@ export default function TaskDetails() {
     navigate("/dashboard");
   };
 
-  const [joined, setJoined] = useState(
-    foundTask.participants?.includes(username) || false
-  );
-
   const handleJoin = async () => {
-    if (!user) return alert("Kirjaudu ensin liittyäksesi tehtävään!");
+    if (!user || !user.username) {
+      return alert("Kirjaudu ensin liittyäksesi tehtävään!");
+    }
     if (joined) return alert("Olet jo liittynyt tähän tehtävään!");
 
-    await joinTask(
-      foundProject.id,
-      foundCategory.id,
-      foundTask._id || foundTask.id,
-      username
-    );
-
-    alert("Liityit projektiin!");
+    try {
+      await joinTask(
+        foundProject.id,
+        foundCategory.id,
+        foundTask._id || foundTask.id,
+        username
+      );
+      setJoined(true);
+      alert("Liityit projektiin!");
+    } catch (err) {
+      console.error(err);
+      alert("Virhe liittyessä projektiin");
+    }
   };
 
   return (
@@ -116,8 +127,6 @@ export default function TaskDetails() {
         <p><strong>Projektin kategoria:</strong> {foundCategory.name}</p>
         <p><strong>Projektin aihe:</strong> {foundTask.title || "Ei otsikkoa"}</p>
         <p><strong>Projektin kuvaus:</strong> {foundTask.description || "Ei kuvausta"}</p>
-        <p><strong>Projektin luoja:</strong> {foundTask.creatorAccountName || "Tuntematon"}</p>
-        <p><strong>Projekti luotu:</strong> {foundTask.createdAt || "Tuntematon"}</p>
         <p><strong>GitHub repositorio:</strong> {foundTask.github || "Ei linkkiä"}</p>
         <p><strong>Teams linkki:</strong> {foundTask.teams || "Ei linkkiä"}</p>
 
@@ -125,11 +134,10 @@ export default function TaskDetails() {
           <strong>Osallistujat:</strong>{" "}
           {foundTask.participants && foundTask.participants.length > 0
             ? foundTask.participants
-              .map(p => (typeof p === "string" ? p : p.username))
-              .join(", ")
+                .map(p => (typeof p === "string" ? p : p.username))
+                .join(", ")
             : "Ei osallistujia"}
         </p>
-
 
         <Link className="back-link" to="/dashboard">← Takaisin projekteihin</Link>
         <button onClick={handleMoveToInProgress}>Siirrä projekti työn alle&nbsp;</button>

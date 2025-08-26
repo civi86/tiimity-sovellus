@@ -46,7 +46,9 @@ function reducer(state, action) {
                 if (category.id === categoryId) {
                   return {
                     ...category,
-                    tasks: category.tasks.filter(t => t.id !== taskId && t._id !== taskId),
+                    tasks: category.tasks.filter(
+                      t => t.id !== taskId && t._id !== taskId
+                    ),
                   };
                 }
                 return category;
@@ -97,7 +99,7 @@ function reducer(state, action) {
                     }),
                   };
                 }
-               return category;
+                return category;
               }),
             };
           }
@@ -105,16 +107,31 @@ function reducer(state, action) {
         }),
       };
     }
-
     default:
       return state;
   }
 }
 
+function normalizeProject(project, username) {
+  return {
+    ...project,
+    categories: project.categories.map(category => ({
+      ...category,
+      creator: category.creator || username,
+      tasks: category.tasks.map(task => ({
+        ...task,
+        creator: task.creator || username,
+        participants: task.participants
+          ? task.participants.map(p => (typeof p === "string" ? p : p.username))
+          : [],
+      })),
+    })),
+  };
+}
 
 export function ProjectsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { projects, activeProjectId } = state;
+  const { projects } = state;
   const { user } = useAuth();
 
   useEffect(() => {
@@ -132,156 +149,176 @@ export function ProjectsProvider({ children }) {
     loadProjects();
   }, []);
 
-  async function addProject(project) {
+  const addProject = async project => {
     dispatch({ type: "projects/add", payload: project });
-  }
+  };
 
-  async function removeProject(project) {
+  const removeProject = async project => {
     dispatch({ type: "projects/remove", payload: project.id });
-  }
+  };
 
-  function setActiveProject(projectId) {
+  const setActiveProject = projectId => {
     dispatch({ type: "projects/setActive", payload: projectId });
-  }
+  };
 
-  async function addTaskToCategory(projectId, categoryId, taskFromFrontend) {
-    try {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) throw new Error("Project not found");
-
-      const category = project.categories.find(c => c._id === categoryId);
-      if (!category) throw new Error("Category not found");
-
-      category.tasks.push(taskFromFrontend);
-
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project),
-      });
-
-      const updatedProject = await res.json();
-      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
-
-      return updatedProject;
-    } catch (error) {
-      alert("Error updating project: " + error.message);
-    }
-  }
-
-  async function moveTaskToCategory(projectId, taskId, targetCategoryName, updatedTask = null) {
-    try {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) throw new Error("Project not found");
-
-      const currentCategory = project.categories.find(c =>
-        c.tasks.some(t => t.id === taskId)
-      );
-      if (!currentCategory) throw new Error("Task not found in any category");
-
-      let task = currentCategory.tasks.find(t => t.id === taskId);
-
-      if (updatedTask) {
-        task = { ...task, ...updatedTask };
-      }
-
-      currentCategory.tasks = currentCategory.tasks.filter(t => t.id !== taskId);
-
-      const targetCategory = project.categories.find(c => c.name === targetCategoryName);
-      if (!targetCategory) throw new Error(`Category "${targetCategoryName}" not found`);
-
-      targetCategory.tasks.push(task);
-
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project),
-      });
-
-      const updatedProject = await res.json();
-      if (!res.ok) throw new Error(updatedProject.message || "Failed to update project");
-
-      return updatedProject;
-    } catch (error) {
-      alert("Error moving task: " + error.message);
-    }
-  }
-
-  async function deleteTaskFromCategory(projectId, categoryId, taskId) {
-    try {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) throw new Error("Error");
-
-      const category = project.categories.find(c => c.id === categoryId);
-      if (!category) throw new Error("Error");
-
-      const task = category.tasks.find(t => t.id === taskId || t._id === taskId);
-      if (!task) throw new Error("Error");
-
-      if (task.creatorAccountName !== user.username && !user.isAdmin) {
-        alert("Vain tehtävän luonut käyttäjä tai admin voi poistaa tämän tehtävän.");
-        return;
-      }
-
-      category.tasks = category.tasks.filter(t => t.id !== taskId && t._id !== taskId);
-
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project),
-      });
-
-      const updatedProject = await res.json();
-      if (!res.ok) throw new Error(updatedProject.message || "Error");
-
-      dispatch({ type: "projects/deleteTask", payload: { projectId, categoryId, taskId } });
-
-      return updatedProject;
-    } catch (error) {
-      alert("Error: " + error.message);
-    }
-  }
-
-  async function joinTask(projectId, categoryId, taskId, username) {
+  const addTaskToCategory = async (projectId, categoryId, taskFromFrontend) => {
     const project = projects.find(p => p.id === projectId);
-    if (!project) return;
+    if (!project) throw new Error("Project not found");
+
+    const category = project.categories.find(c => c._id === categoryId);
+    if (!category) throw new Error("Category not found");
+
+    category.tasks.push(taskFromFrontend);
+
+    const normalizedProject = normalizeProject(project, user.username);
+
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(normalizedProject),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to update project");
+
+    return data;
+  };
+
+  const moveTaskToCategory = async (projectId, taskId, targetCategoryName, updatedTask = null) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) throw new Error("Project not found");
+
+    const currentCategory = project.categories.find(c =>
+      c.tasks.some(t => t.id === taskId)
+    );
+    if (!currentCategory) throw new Error("Task not found in any category");
+
+    let task = currentCategory.tasks.find(t => t.id === taskId);
+    if (updatedTask) task = { ...task, ...updatedTask };
+
+    currentCategory.tasks = currentCategory.tasks.filter(t => t.id !== taskId);
+
+    const targetCategory = project.categories.find(c => c.name === targetCategoryName);
+    if (!targetCategory) throw new Error(`Category "${targetCategoryName}" not found`);
+
+    targetCategory.tasks.push(task);
+
+    const normalizedProject = normalizeProject(project, user.username);
+
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(normalizedProject),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to move task");
+
+    return data;
+  };
+
+  const deleteTaskFromCategory = async (projectId, categoryId, taskId) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) throw new Error("Project not found");
 
     const category = project.categories.find(c => c.id === categoryId);
-    if (!category) return;
+    if (!category) throw new Error("Category not found");
 
     const task = category.tasks.find(t => t.id === taskId || t._id === taskId);
-    if (!task) return;
+    if (!task) throw new Error("Task not found");
 
-    task.participants = task.participants || [];
-    if (!task.participants.some(p => p.username === username)) {
-      task.participants.push({ username });
+    if (task.creatorAccountName !== user.username && !user.isAdmin) {
+      alert("Vain tehtävän luonut käyttäjä tai admin voi poistaa tämän tehtävän.");
+      return;
+    }
 
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+    category.tasks = category.tasks.filter(t => t.id !== taskId && t._id !== taskId);
+
+    const normalizedProject = normalizeProject(project, user.username);
+
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`,
+      {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project),
-      });
+        body: JSON.stringify(normalizedProject),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to delete task");
+
+    dispatch({ type: "projects/deleteTask", payload: { projectId, categoryId, taskId } });
+
+    return data;
+  };
+
+  const joinTask = async (projectId, categoryId, taskId, username) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return alert("Project not found");
+
+    const category = project.categories.find(c => c.id === categoryId);
+    if (!category) return alert("Category not found");
+
+    const task = category.tasks.find(t => t.id === taskId || t._id === taskId);
+    if (!task) return alert("Task not found");
+
+    const participants = task.participants ? [...task.participants] : [];
+    if (participants.includes(username)) return alert("Olet jo liittynyt projektiin!");
+
+    participants.push(username);
+
+    const normalizedProject = normalizeProject(project, username);
+
+    normalizedProject.categories = normalizedProject.categories.map(c => {
+      if (c.id === categoryId) {
+        return {
+          ...c,
+          tasks: c.tasks.map(t => {
+            if (t.id === taskId || t._id === taskId) return { ...t, participants };
+            return t;
+          }),
+        };
+      }
+      return c;
+    });
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(normalizedProject),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to join task");
 
       dispatch({
         type: "projects/updateTaskParticipants",
-        payload: {
-          projectId,
-          categoryId,
-          taskId,
-          participants: task.participants
-        }
+        payload: { projectId, categoryId, taskId, participants },
       });
+
+      alert("Liityit projektiin!");
+    } catch (error) {
+      console.error("Join task error:", error);
+      alert("Virhe liittyessä projektiin: " + error.message);
     }
-  }
-
-
-  
+  };
 
   return (
     <ProjectsContext.Provider
       value={{
         projects,
-        activeProjectId,
+        activeProjectId: state.activeProjectId,
         addProject,
         removeProject,
         setActiveProject,

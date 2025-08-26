@@ -47,7 +47,6 @@ export default function LoginPage() {
           alt="Logo"
           style={{ height: "80px", marginLeft: "12rem", marginBottom: "0rem" }}
         />
-        <p>serveri on hidas käynnistymään kirjautumisessa menee hetki</p>
       </div>
 
       <div className="login-container">
