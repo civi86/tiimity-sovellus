@@ -63,7 +63,7 @@ export default function TaskDetails() {
 
   const handleMoveToInProgress = async () => {
     const github = prompt("Syötä linkki GitHub-repositorioon");
-    const teams = prompt("Syötä linkki Teams ryhmään");
+    const teams = prompt("Syötä koodi Teams tiimiisi");
 
     if (!github || !teams) {
       alert("Molemmat linkit ovat pakollisia!");
@@ -115,9 +115,18 @@ export default function TaskDetails() {
     <>
       <Header>
         <img
+						src="/assets/logo.png"
+						alt="Logo"
+						style={{
+							height: "40px",
+							marginRight: "3rem",
+							marginLeft: "1rem",
+						}}
+					/>
+        <img
           src="/assets/it-velhot.png"
           alt="Logo"
-          style={{ height: "40px", marginRight: "9rem", marginLeft: "2rem" }}
+          style={{ height: "40px", marginRight: "1rem", marginLeft: "85rem" }}
         />
       </Header>
 
@@ -130,7 +139,7 @@ export default function TaskDetails() {
         {joined && (
         <>
           <p><strong>GitHub repositorio:</strong> {foundTask.github || "Ei linkkiä"}</p>
-          <p><strong>Teams linkki:</strong> {foundTask.teams || "Ei linkkiä"}</p>
+          <p><strong>Teams liittymiskoodi:</strong> {foundTask.teams || "Ei linkkiä"}</p>
         </>
         )}
 
